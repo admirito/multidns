@@ -129,6 +129,8 @@ class ProxyResolver(BaseResolver):
         return reply
 
 def main():
+    global OPTIONS, ARGS
+
     parser = OptionParser()
 
     parser.add_option("-b", "--bind", dest = "bind", \
