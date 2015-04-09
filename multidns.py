@@ -43,7 +43,7 @@ try:
 except ImportError:
     import Queue
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 class UDPServer(ThreadingUDPServer):
     allow_reuse_address = True
