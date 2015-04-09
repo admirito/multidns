@@ -70,14 +70,14 @@ def EncryptDNSRecord(record):
         rr.set_rname(encrypted_rname)
 
     for auth in record.auth:
-        rname = str(rr.get_rname())
+        rname = str(auth.get_rname())
         encrypted_rname = encrypt(rname)
-        rr.set_rname(encrypted_rname)
+        auth.set_rname(encrypted_rname)
 
     for ar in record.ar:
-        rname = str(rr.get_rname())
+        rname = str(ar.get_rname())
         encrypted_rname = encrypt(rname)
-        rr.set_rname(encrypted_rname)
+        ar.set_rname(encrypted_rname)
 
 def IsAcceptable(reply):
     global OPTIONS
