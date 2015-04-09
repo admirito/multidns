@@ -108,7 +108,7 @@ class ProxyResolver(BaseResolver):
                     EncryptDNSRecord(request2)
 
                 t = Thread(target = lambda *x: queue.put((encrypted, \
-                                                        request2.send(*x))), \
+                           request2.send(*x, timeout = OPTIONS.timeout))), \
                            args = addr)
                 t.daemon = True
                 t.start()
