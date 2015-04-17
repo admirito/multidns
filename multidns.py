@@ -25,7 +25,7 @@ fool your government censorship devices.
 
 from __future__ import print_function
 
-import sys, time, re, copy
+import sys, time, re, copy, socket
 from threading import Thread
 from optparse import OptionParser
 
@@ -43,7 +43,7 @@ try:
 except ImportError:
     import Queue
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 class UDPServer(ThreadingUDPServer):
     allow_reuse_address = True
@@ -107,9 +107,17 @@ class ProxyResolver(BaseResolver):
                     addr = (addr[0][1:],) + addr[1:]
                     EncryptDNSRecord(request2)
 
-                t = Thread(target = lambda *x: queue.put((encrypted, \
-                           request2.send(*x, timeout = OPTIONS.timeout))), \
-                           args = addr)
+                def put(request, encrypted, *send_args, **send_kwargs):
+                    try:
+                        result = request.send(*send_args, **send_kwargs)
+                    except socket.timeout:
+                        pass
+                    else:
+                        queue.put((encrypted, result))
+
+                t = Thread(target = put, \
+                           args = (request2, encrypted,) + addr, \
+                           kwargs = {"timeout": OPTIONS.timeout})
                 t.daemon = True
                 t.start()
 
