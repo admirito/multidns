@@ -25,7 +25,7 @@ fool your government censorship devices.
 
 from __future__ import print_function
 
-import sys, time, re, copy, socket
+import sys, time, re, copy, socket, struct
 from threading import Thread
 from optparse import OptionParser
 
@@ -43,7 +43,7 @@ try:
 except ImportError:
     import Queue
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 class UDPServer(ThreadingUDPServer):
     allow_reuse_address = True
@@ -88,9 +88,47 @@ def IsAcceptable(reply):
     except:
         return True
 
+def request_send(self, dest, port = 53, tcp = False, timeout = None, \
+                 bind_address = None):
+    """\
+    Send packet to nameserver and return response
+
+    This is dnslib DNSRecord.send in dns.py but with a "bind_address"
+    extra parameter
+    """
+    data = self.pack()
+    if tcp:
+        if len(data) > 65535:
+            raise ValueError("Packet length too long: %d" % len(data))
+        data = struct.pack("!H",len(data)) + data
+        sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        if timeout is not None:
+            sock.settimeout(timeout)
+        if bind_address:
+            sock.bind((bind_address, 0))
+        sock.connect((dest,port))
+        sock.sendall(data)
+        response = sock.recv(8192)
+        length = struct.unpack("!H",bytes(response[:2]))[0]
+        while len(response) - 2 < length:
+            response += sock.recv(8192)
+        sock.close()
+        response = response[2:]
+    else:
+        sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+        if timeout is not None:
+            sock.settimeout(timeout)
+        if bind_address:
+            sock.bind((bind_address, 0))
+        sock.sendto(self.pack(),(dest,port))
+        response,server = sock.recvfrom(8192)
+        sock.close()
+    return response
+
 class ProxyResolver(BaseResolver):
-    def __init__(self, addresses):
+    def __init__(self, addresses, request_bind_address = None):
         self.addresses = addresses
+        self.request_bind_address = request_bind_address
         
     def resolve(self, request, handler):
         global OPTIONS
@@ -109,7 +147,13 @@ class ProxyResolver(BaseResolver):
 
                 def put(request, encrypted, *send_args, **send_kwargs):
                     try:
-                        result = request.send(*send_args, **send_kwargs)
+                        if self.request_bind_address:
+                            result = request_send(request, *send_args, \
+                                                  bind_address = \
+                                                  self.request_bind_address, \
+                                                  **send_kwargs)
+                        else:
+                            result = request.send(*send_args, **send_kwargs)
                     except socket.timeout:
                         pass
                     else:
@@ -159,6 +203,10 @@ def main():
                       "expression that will not be prefered on DNS " \
                       "resolving. Default value is `10.10.34.34'.", \
                       metavar = "REGEX")
+    parser.add_option("--request-bind", dest = "request_bind", \
+                      type = "string", default = "", \
+                      help = "bind to IP address before sending DNS " \
+                      "requests.", metavar = "IP")
     parser.add_option("-q", "--quiet", dest = "quiet", \
                       action = "store_true", default = False, \
                       help = "do not print any log")
@@ -181,7 +229,8 @@ def main():
     bind_address, bind_port = get_address_port(OPTIONS.bind)
     dns_servers = [get_address_port(arg) for arg in ARGS]
 
-    resolver = ProxyResolver(dns_servers)
+    resolver = ProxyResolver(dns_servers, request_bind_address = \
+                             (OPTIONS.request_bind or None))
     logger = DNSLogger("request,reply,truncated,error", False) \
              if not OPTIONS.quiet else \
              DNSLogger("-request,-reply,-truncated,-error,-log_recv," \
