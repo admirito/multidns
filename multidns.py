@@ -83,8 +83,8 @@ def IsAcceptable(reply):
     global OPTIONS
     try:
         #return reply.get_a().rdata != A("10.10.34.34")
-        return not bool(re.match(str(reply.get_a().rdata), \
-                             OPTIONS.invalid_resolve))
+        return not bool(re.match(OPTIONS.invalid_resolve,
+                                 str(reply.get_a().rdata)))
     except:
         return True
 
