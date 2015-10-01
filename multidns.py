@@ -43,7 +43,7 @@ try:
 except ImportError:
     import Queue
 
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 
 class UDPServer(ThreadingUDPServer):
     allow_reuse_address = True
@@ -198,10 +198,10 @@ def main():
                       type = "int", default = "3", \
                       help = "set retry count to COUNT", metavar = "COUNT")
     parser.add_option("-i", "--invalid-resolve", dest = "invalid_resolve", \
-                      type = "string", default = "10.10.34.34", \
+                      type = "string", default = r"10\.10\.34\.\d+", \
                       help = "REGEX is a an IP address or a regular " \
                       "expression that will not be prefered on DNS " \
-                      "resolving. Default value is `10.10.34.34'.", \
+                      "resolving. Default value is `10.10.34.\\d+'.", \
                       metavar = "REGEX")
     parser.add_option("--request-bind", dest = "request_bind", \
                       type = "string", default = "", \
