@@ -88,7 +88,7 @@ def IsAcceptable(reply):
         return False
     else:
         if result == None:
-            return None
+            return False
 
     return not bool(re.match(OPTIONS.invalid_resolve, str(result)))
 
