@@ -81,12 +81,16 @@ def EncryptDNSRecord(record):
 
 def IsAcceptable(reply):
     global OPTIONS
+
     try:
-        #return reply.get_a().rdata != A("10.10.34.34")
-        return not bool(re.match(OPTIONS.invalid_resolve,
-                                 str(reply.get_a().rdata)))
-    except:
-        return True
+        result = reply.get_a().rdata
+    except AttributeError:
+        return False
+    else:
+        if result == None:
+            return None
+
+    return not bool(re.match(OPTIONS.invalid_resolve, str(result)))
 
 def request_send(self, dest, port = 53, tcp = False, timeout = None, \
                  bind_address = None):
