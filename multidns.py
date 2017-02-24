@@ -29,7 +29,7 @@ import sys, time, re, copy, socket, struct
 from threading import Thread
 from optparse import OptionParser
 
-from dnslib import DNSRecord
+from dnslib import DNSRecord, DNSError
 from dnslib.server import DNSServer, DNSHandler, BaseResolver, DNSLogger
 from dnslib.dns import A
 
@@ -43,7 +43,7 @@ try:
 except ImportError:
     import Queue
 
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 
 class UDPServer(ThreadingUDPServer):
     allow_reuse_address = True
@@ -181,6 +181,9 @@ class ProxyResolver(BaseResolver):
 
                 if IsAcceptable(reply):
                     return reply
+
+        if not reply:
+            raise DNSError("No reply received for the request")
 
         return reply
 
