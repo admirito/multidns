@@ -217,12 +217,19 @@ def main():
     parser.add_option("-q", "--quiet", dest = "quiet", \
                       action = "store_true", default = False, \
                       help = "do not print any log")
-    
+    parser.add_option("-V", "--version", dest="display_version",
+                      action="store_true", default=False,
+                      help="print current version and exit.")
+
     parser.set_usage("%s [OPTION]... DNS_SERVER[:PORT]..." % \
                      sys.argv[0])
     parser.set_description(__doc__)
 
     OPTIONS, ARGS = parser.parse_args()
+
+    if OPTIONS.display_version:
+        print("multidns version {}".format(__version__))
+        exit(0)
 
     if len(ARGS) < 1:
         parser.print_help()
