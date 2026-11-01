@@ -1,5 +1,7 @@
 # multidns
 
+Archived on 2026-11-01, read-only: a DNS relay that returned the fastest answer of several servers, 2015 to 2017
+
 multidns will relay your DNS requsts to several DNS servers and
 returns the first answer.
 
